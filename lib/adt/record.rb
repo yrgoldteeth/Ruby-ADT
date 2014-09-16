@@ -1,9 +1,10 @@
 module ADT
   # An instance of ADT::Record represents a row in the ADT file
   class Record
+    extend Forwardable
     attr_reader :attributes
     
-    delegate :columns, :to => :@table
+    def_delegators :@table, :columns
     
     # Initialize a new ADT::Record
     #

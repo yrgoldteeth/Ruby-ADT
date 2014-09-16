@@ -1,6 +1,8 @@
 require 'rubygems'
 require 'date'
 require 'active_support'
+require 'forwardable'
+require 'active_support/core_ext/string/inflections'
 
 if RUBY_VERSION > '1.9'
  require 'csv'
@@ -14,9 +16,9 @@ else
  require 'fastercsv'
 end
 
-require 'adt/globals'
-require 'adt/record'
-require 'adt/column'
-require 'adt/table'
+require './lib/adt/globals'
+require './lib/adt/record'
+require './lib/adt/column'
+require './lib/adt/table'
 
 
