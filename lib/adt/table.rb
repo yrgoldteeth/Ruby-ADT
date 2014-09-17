@@ -1,5 +1,5 @@
 module ADT
- 
+
   # ADT::Table is the primary interface to a single ADT file and provides
   # methods for enumerating and searching the records.
   class Table
@@ -8,7 +8,7 @@ module ADT
     attr_reader :options # The options hash used to initialize the table
     attr_reader :data # ADT file handle
     attr_reader :record_count # Total number of records
-    
+
     # Opens a ADT:Table
     # Example:
     # table = ADT::Table.new 'data.adt'
@@ -18,20 +18,20 @@ module ADT
       @data = File.open(path, 'rb')
       reload!
     end
-    
-    # Closes the table 
+
+    # Closes the table
     def close
       @data.close
     end
-    
+
     # Reloads the database
     def reload!
       @records = nil
       get_header_info
       get_column_descriptors
     end
-  
-    
+
+
     # Retrieve a Column by name
     #
     # @param [String, Symbol] column_name
@@ -39,7 +39,7 @@ module ADT
     def column(column_name)
       @columns.detect {|f| f.name == column_name.to_s}
     end
-    
+
     # Calls block once for each record in the table. The record may be nil
     # if the record has been marked as deleted.
     #
@@ -50,7 +50,7 @@ module ADT
         yield ADT::Record.new(self)
       end
     end
-    
+
     # Retrieve a record by index number
     #
     # @param [Fixnum] index
@@ -59,10 +59,10 @@ module ADT
       seek_to_record(index)
       ADT::Record.new(self)
     end
-    
+
     alias_method :row, :record
-    
-    
+
+
     # Generate an ActiveRecord::Schema
     #
     # xBase data types are converted to generic types as follows:
@@ -92,20 +92,20 @@ module ADT
         s << " t.column #{column.schema_definition}"
       end
       s << " end\nend"
-      
+
       if path
         File.open(path, 'w') {|f| f.puts(s)}
       end
-        
+
       s
     end
-    
+
     def to_a
       records = []
       each {|record| records << record if record}
       records
     end
-    
+
     # Dumps all records to a CSV file. If no filename is given then CSV is
     # output to STDOUT.
     #
@@ -118,7 +118,7 @@ module ADT
         end
       end
     end
-    
+
     # Find records using a simple ActiveRecord-like syntax.
     #
     # Examples:
@@ -155,9 +155,9 @@ module ADT
         find_first(options)
       end
     end
-    
+
     private
-    
+
     # Find all matching
     #
     # @param [Hash] options
@@ -176,7 +176,7 @@ module ADT
       end
       results
     end
-    
+
     # Find first matching
     #
     # @param [Hash] options
@@ -187,7 +187,7 @@ module ADT
       end
       nil
     end
-    
+
     # Do all search parameters match?
     #
     # @param [ADT::Record] record
@@ -196,8 +196,8 @@ module ADT
     def all_values_match?(record, options)
       options.all? {|key, value| record.attributes[key.to_s.underscore] == value}
     end
-    
-    
+
+
     # Replace the file extension
     #
     # @param [String] path
@@ -207,23 +207,23 @@ module ADT
       path.sub(/#{File.extname(path)[1..-1]}$/, extension)
     end
 
-    
+
     # Determine record count, record_count, and record length
     def get_header_info
       @data.rewind
-    
+
       #column_count_offset = 33, record_count_offset = 24, record_length_offset = 36
       @record_count, @data_offset, @record_length = data.read(HEADER_LENGTH).unpack("@24 I x4 I I")
       @column_count = (@data_offset-400)/200
     end
-    
-    
+
+
     # Retrieves column information from the database
     def get_column_descriptors
       #skip past header to get to column information
       @data.seek(HEADER_LENGTH)
-      
-      # column names are the first 128 bytes and column info takes up the last 72 bytes.  
+
+      # column names are the first 128 bytes and column info takes up the last 72 bytes.
       # byte 130 contains a 16-bit column type
       # byte 136 contains a 16-bit length field
       @columns = []
@@ -235,25 +235,25 @@ module ADT
       end
       # Reset the column count in case any were skipped
       @column_count = @columns.size
-      
+
       @columns
     end
-    
-    
+
+
     # Seek to a byte offset in the record data
     #
     # @params [Fixnum] offset
     def seek(offset)
       @data.seek(@data_offset + offset)
     end
-  
+
     # Seek to a record
     #
     # @param [Fixnum] index
     def seek_to_record(index)
       seek(index * @record_length)
     end
-    
+
   end
-  
+
 end
